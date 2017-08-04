@@ -7,20 +7,13 @@
 from collections import namedtuple
 from .cell import *
 
+__all__ = ['Sheet', 'SheetSize']
+
 
 class Sheet:
     """
     Лист.
     """
-
-    # Максимальные размеры листа расчитываются исходя из следующего утверждения
-    # 'Ссылки на ячейки состоят из одной латинской буквы и следующей за ней цифры'.
-
-    # Максимальный размер листа по горизонтали (A-Z)
-    Max_Size_X = 26
-
-    # Максимальный размер листа по вертикали (1-9)
-    Max_Size_Y = 9
 
     class ParseError(ValueError):
         pass
@@ -30,49 +23,19 @@ class Sheet:
         Конструктор.
 
         :param str line: Строка задающая размер листа.
-        :raises Sheet.ParseError:
+        :raises ValueError:
         """
 
-        self._size_x, self._size_y = self._parser_size(line)
+        self._size = SheetSize.parser(line)
         self._cell_list = {}
-
-    @classmethod
-    def _parser_size(cls, line):
-        """
-        Разобрать строку с размером листа.
-
-        :param str line: Строка.
-        :rtype: (int, int)
-
-        :raises Sheet.ParseError:
-        """
-
-        error_text = f'Строка с размером листа должна быть в формате "<Число 1>/t<Число 2>", ' \
-                     f'где <Число> целое положительное!'
-
-        if not (isinstance(line, str) and line):
-            raise Sheet.ParseError(error_text)
-
-        values = line.split('\t')
-        if not (len(values) == 2 and values[0].isdigit() and values[1].isdigit()):
-            raise Sheet.ParseError(error_text)
-
-        size_y = int(values[0])
-        size_x = int(values[1])
-
-        if not(0 < size_x <= cls.Max_Size_X and
-               0 < size_y <= cls.Max_Size_Y):
-            raise Sheet.ParseError(error_text)
-
-        return size_x, size_y
 
     def get_size(self):
         """
-        Получить размер листа (x, y).
-        :rtype: (int, int)
+        Получить размер листа.
+        :rtype: SheetSize
         """
 
-        return self._size_x, self._size_y
+        return self._size
 
     def parse_line(self, line):
         """
@@ -82,21 +45,21 @@ class Sheet:
         :raises Sheet.ParseError:
         """
 
-        if len(self._cell_list) == self._size_y * self._size_x:
+        if len(self._cell_list) == self._size.y * self._size.x:
             raise self.ParseError('Достигнут предел размерности таблицы по вертикали!')
 
         error_text = f'Строка со значением ячеек должна содержать ' \
-                     f'"{self._size_x}" выражений разделенных символом табуляции!'
+                     f'"{self._size.x}" выражений разделенных символом табуляции!'
 
         if not isinstance(line, str):
             raise self.ParseError(error_text)
 
         cell_value_list = line.split('\t')
-        if not (len(cell_value_list) == self._size_x):
+        if not (len(cell_value_list) == self._size.x):
             raise self.ParseError(error_text)
 
         # Заполнить текущую строку ячейками
-        line_number = int(len(self._cell_list) / self._size_x) + 1
+        line_number = int(len(self._cell_list) / self._size.x) + 1
         for i, value in enumerate(cell_value_list):
             self._cell_list[(i + 1, line_number)] = Cell(value)
 
@@ -108,9 +71,9 @@ class Sheet:
         :return Ключом является кортеж (x, y), значением вычисленное выражение.
         """
 
-        if not (len(self._cell_list) == (self._size_x * self._size_y)):
+        if not (len(self._cell_list) == (self._size.x * self._size.y)):
             raise RuntimeError(f'Инициализация не закончена. '
-                               f'Кол-во заданных ячеек "{len(self._cell_list)}" из "{self._size_x * self._size_y}"')
+                               f'Кол-во заданных ячеек "{len(self._cell_list)}" из "{self._size.x * self._size.y}"')
 
         sheet_cell_value = {}
 
@@ -199,3 +162,75 @@ class Sheet:
             else:
                 # Приступить к обработке очередного выражения.
                 pass
+
+
+class SheetSize:
+    """
+    Размер листа.
+
+    Максимальные размеры листа расчитываются исходя из утверждения
+    'Ссылки на ячейки состоят из одной латинской буквы и следующей за ней цифры'.
+    """
+
+    # Максимальный размер листа по вертикали (1-9)
+    Max_Y = 9
+
+    # Максимальный размер листа по горизонтали (A-Z)
+    Max_X = 26
+
+    def __init__(self, y, x):
+        """
+        Конструктор.
+
+        :param int y: Размер по вертикали.
+        :param int x: Размер по горизонтали.
+
+        :raises ValueError:
+        """
+
+        if not(isinstance(y, int) and 0 < y <= self.Max_Y):
+            raise ValueError(f'Размер по вертикали должен лежать в диапазоне 1-{self.Max_Y}!')
+        self._y = y
+
+        if not(isinstance(x, int) and 0 < x <= self.Max_X):
+            raise ValueError(f'Размер по горизонтали должен лежать в диапазоне 1-{self.Max_X}!')
+        self._x = x
+
+    @property
+    def y(self):
+        """
+        Получить размер по вертикали.
+        :rtype: int
+        """
+        return self._y
+
+    @property
+    def x(self):
+        """
+        Получить размер по горизонтали.
+        :rtype: int
+        """
+        return self._x
+
+    @classmethod
+    def parser(cls, line):
+        """
+        Разобрать строку.
+        Строка в формате Y\tX
+
+        :param str line: Строка.
+        :rtype: SheetSize
+
+        :raises ValueError:
+        """
+
+        error_text = f'Строка с размером листа должна быть в формате "<1-{cls.Max_Y}>/t<1-{cls.Max_X}>"!'
+
+        if not (isinstance(line, str) and line):
+            raise ValueError(error_text)
+
+        values = line.split('\t')
+        if not (len(values) == 2 and values[0].isdigit() and values[1].isdigit()):
+            raise ValueError(error_text)
+
+        return SheetSize(int(values[0]), int(values[1]))

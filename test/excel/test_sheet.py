@@ -6,64 +6,13 @@ from src.excel.cell import *
 from src.excel.sheet import *
 
 
-class TestSheetConstructor:
-    @pytest.mark.parametrize('line', [0, '', None])
-    def test_1(self, line):
+class TestSheet:
+    def test_constructor_1(self):
         """
-        Не корректное создание экземпляра класса.
-        :param str line: Строка задающая размер листа.
+        Создание экземпляра класса.
         """
 
-        with pytest.raises(Sheet.ParseError):
-            Sheet(line)
-
-    @pytest.mark.parametrize('line', ['1',
-                                      '1 2',
-                                      '1\t\t2',
-                                      '1\t2\t',
-                                      ' 1\t2',
-                                      '1\t 2',
-                                      '1\t2 ',
-                                      '1.1\t2',
-                                      '1\t2.2'
-                                      ])
-    def test_2(self, line):
-        """
-        Не корректное создание экземпляра класса.
-        :param str line: Строка задающая размер листа.
-        """
-
-        with pytest.raises(Sheet.ParseError):
-            Sheet(line)
-
-    @pytest.mark.parametrize('line', ['1',
-                                      '0\t0',
-                                      '0\t2',
-                                      '2\t0',
-                                      '-1\t2',
-                                      '1\t-2',
-                                      '1025\t2',
-                                      '1\t1025'
-                                      ])
-    def test_3(self, line):
-        """
-        Не корректное создание экземпляра класса.
-        :param str line: Строка задающая размер листа.
-        """
-
-        with pytest.raises(Sheet.ParseError):
-            Sheet(line)
-
-    @pytest.mark.parametrize('size_x', [1, Sheet.Max_Size_X])
-    @pytest.mark.parametrize('size_y', [1, Sheet.Max_Size_Y])
-    def test_4(self, size_x, size_y):
-        """
-        Корректное создание экземпляра класса.
-        :param int size_x: Размер листа.
-        :param int size_y: Размер листа.
-        """
-
-        assert Sheet(f'{size_y}\t{size_x}').get_size() == (size_x, size_y)
+        assert isinstance(Sheet('1\t1').get_size(), SheetSize)
 
 
 class TestSheetParseLine:
@@ -125,7 +74,7 @@ class TestSheetCalculate:
         with pytest.raises(RuntimeError):
             sheet.calculate()
 
-    @pytest.mark.parametrize('size_y', [1, 2, Sheet.Max_Size_Y])
+    @pytest.mark.parametrize('size_y', [1, 2, SheetSize.Max_Y])
     def test_2(self, size_y):
         """
         Циклическое вычисление.
@@ -149,18 +98,18 @@ class TestSheetCalculate:
         Максимальная циклическая вложенность\зависимость. =A2, =A3, ..., =Z8, =A1
         """
 
-        sheet = Sheet(f'{Sheet.Max_Size_Y}\t{Sheet.Max_Size_X}')
-        for y in range(1, sheet.get_size()[1] + 1):
-            line = [f'={chr(ord("A") + x)}{y}' for x in range(1, sheet.get_size()[0])]
+        sheet = Sheet(f'{SheetSize.Max_Y}\t{SheetSize.Max_X}')
+        for y in range(1, sheet.get_size().y + 1):
+            line = [f'={chr(ord("A") + x)}{y}' for x in range(1, sheet.get_size().x)]
 
             # Добавить цикличность
-            line.append('=A1' if y == Sheet.Max_Size_Y else f'=A{y + 1}')
+            line.append('=A1' if y == SheetSize.Max_Y else f'=A{y + 1}')
 
             sheet.parse_line('\t'.join(line))
 
         result = sheet.calculate()
-        for y in range(1, sheet.get_size()[1] + 1):
-            for x in range(1, sheet.get_size()[0] + 1):
+        for y in range(1, sheet.get_size().y + 1):
+            for x in range(1, sheet.get_size().x + 1):
                 assert result[(x, y)] == Sheet._CalcError.Circle_Ref
 
     def test_4(self):
@@ -168,17 +117,17 @@ class TestSheetCalculate:
         Максимальное циклическое вычисление. =A2 + 1, =A3 + 1, ..., =Z8 + 1, =1
         """
 
-        sheet = Sheet(f'{Sheet.Max_Size_Y}\t{Sheet.Max_Size_X}')
-        for y in range(1, sheet.get_size()[1] + 1):
-            line = [f'={chr(ord("A") + x)}{y}+1' for x in range(1, sheet.get_size()[0])]
-            line.append('=1' if y == sheet.get_size()[1] else f'=A{y + 1}+1')
+        sheet = Sheet(f'{SheetSize.Max_Y}\t{SheetSize.Max_X}')
+        for y in range(1, sheet.get_size().y + 1):
+            line = [f'={chr(ord("A") + x)}{y}+1' for x in range(1, sheet.get_size().x)]
+            line.append('=1' if y == sheet.get_size().y else f'=A{y + 1}+1')
 
             sheet.parse_line('\t'.join(line))
 
         result = sheet.calculate()
-        for y in range(1, sheet.get_size()[1] + 1):
-            for x in range(1, sheet.get_size()[0] + 1):
-                assert result[(x, y)] == (sheet.get_size()[0] * sheet.get_size()[1] - sheet.get_size()[0] * (y - 1) - x + 1)
+        for y in range(1, sheet.get_size().y + 1):
+            for x in range(1, sheet.get_size().x + 1):
+                assert result[(x, y)] == (sheet.get_size().y * sheet.get_size().x - sheet.get_size().x * (y - 1) - x + 1)
 
     def test_5(self):
         """
@@ -203,3 +152,68 @@ class TestSheetCalculate:
         assert result[(1, 3)] == ''
         assert result[(2, 3)] == ''
         assert result[(3, 3)] == ''
+
+
+class TestSheetSize:
+    @pytest.mark.parametrize('size', [(None, None), ('', ''),
+                                      (1, 'a'), ('a', 1),
+                                      ('1', 1), (1, '1'),
+                                      ('1', None), (None, '1'),
+                                      (-1, 1), (1, -1),
+                                      (0, 1), (1, 0),
+                                      (1, SheetSize.Max_X + 1), (SheetSize.Max_Y + 1, 1),
+                                      (1.1, 1), (1, 1.1)])
+    def test_constructor_1(self, size):
+        """
+        Не корректное создание экземпляра класса.
+        :param tuple size: Размер листа.
+        """
+
+        with pytest.raises(ValueError):
+            SheetSize(size[0], size[1])
+
+    @pytest.mark.parametrize('size_y', [1, SheetSize.Max_Y])
+    @pytest.mark.parametrize('size_x', [1, SheetSize.Max_X])
+    def test_constructor_2(self, size_y, size_x):
+        """
+        Корректное создание экземпляра класса.
+        :param int size_y: Размер по вертикали.
+        :param int size_x: Размер по горизонтали.
+        """
+
+        sheet_size = SheetSize(size_y, size_x)
+        assert sheet_size.y == size_y
+        assert sheet_size.x == size_x
+
+    @pytest.mark.parametrize('line', [0,
+                                      '',
+                                      None,
+                                      '1',
+                                      '1 1',
+                                      '1\t\t1',
+                                      '1\t1\t',
+                                      ' 1\t1',
+                                      '1\t 1',
+                                      '1\t1 ',
+                                      '1.1\t1',
+                                      '1\t1.1'
+                                      ])
+    def test_parser_1(self, line):
+        """
+        Не корректный разбор.
+        :param line: Строка.
+        """
+
+        with pytest.raises(ValueError):
+            SheetSize.parser(line)
+
+    @pytest.mark.parametrize('size_y', [1, SheetSize.Max_Y])
+    @pytest.mark.parametrize('size_x', [1, SheetSize.Max_X])
+    def test_parser_2(self, size_y, size_x):
+        """
+        Корректный разбор.
+        :param int size_y: Размер по вертикали.
+        :param int size_x: Размер по горизонтали.
+        """
+
+        SheetSize.parser(f'{size_y}\t{size_x}')

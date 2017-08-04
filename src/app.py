@@ -13,18 +13,17 @@ def run():
         size_line = input()
         sheet = Sheet(size_line)
 
-        for j in range(0, sheet.get_size()[1]):
-            line = input()
-            sheet.parse_line(line)
+        for y in range(0, sheet.get_size().y):
+            sheet.add_line(input())
 
         result = sheet.calculate()
 
-        for y in range(0, sheet.get_size()[1]):
+        for y in range(0, sheet.get_size().y):
             print('\n')
-            print('\t'.join([str(result[(x + 1, y + 1)]) for x in range(0, sheet.get_size()[0])]))
+            print('\t'.join([str(result[(x + 1, y + 1)]) for x in range(0, sheet.get_size().x)]))
 
     except Exception as exp:
-        print(exp)
+        print("Непредвиденная ошибка!")
         sys.exit()
 
 if __name__ == '__main__':
