@@ -14,11 +14,23 @@ class TestSheet:
 
         assert isinstance(Sheet('1\t1').get_size(), SheetSize)
 
+    @pytest.mark.parametrize('line', [None,
+                                      1,
+                                      -1,
+                                      0])
+    def test_add_line_1(self, line):
+        """
+        Не корректное добавление строк.
+        :param line: Строка.
+        """
 
-class TestSheetParseLine:
+        sheet = Sheet('1\t1')
+        with pytest.raises(ValueError):
+            sheet.add_line(line)
+
     @pytest.mark.parametrize('line', [['1', '0'],
                                       ['1\t0']])
-    def test_1(self, line):
+    def test_add_line_2(self, line):
         """
         Не корректное добавление строк.
         :param line: Строка.
@@ -26,35 +38,23 @@ class TestSheetParseLine:
 
         sheet = Sheet('1\t1')
         for l in line[:-1]:
-            sheet.parse_line(l)
+            sheet.add_line(l)
 
         with pytest.raises(ValueError):
-            sheet.parse_line(line[-1])
+            sheet.add_line(line[-1])
 
-    @pytest.mark.parametrize('line', [None,
-                                      1, -1, 0])
-    def test_2(self, line):
-        """
-        Не корректное добавление строк.
-        :param line: Строка.
-        """
-
-        sheet = Sheet('1\t1')
-        with pytest.raises(Sheet.ParseError):
-            sheet.parse_line(line)
-
-    def test_3(self):
+    def test_add_line_3(self):
         """
         Корректное добавление строк.
         """
 
         sheet = Sheet('2\t1')
 
-        sheet.parse_line('')
+        sheet.add_line('')
         assert len(sheet._cell_list) == 1
         assert isinstance(sheet._cell_list[(1, 1)], Cell)
 
-        sheet.parse_line('')
+        sheet.add_line('')
         assert len(sheet._cell_list) == 2
         assert isinstance(sheet._cell_list[(1, 2)], Cell)
 
@@ -70,7 +70,7 @@ class TestSheetCalculate:
         with pytest.raises(RuntimeError):
             sheet.calculate()
 
-        sheet.parse_line('')
+        sheet.add_line('')
         with pytest.raises(RuntimeError):
             sheet.calculate()
 
@@ -83,10 +83,10 @@ class TestSheetCalculate:
 
         sheet = Sheet(f'{size_y}\t{2}')
         for y in range(1, size_y):
-            sheet.parse_line(f'=A{y + 1}\t1')
+            sheet.add_line(f'=A{y + 1}\t1')
 
         # Добавили цикличность
-        sheet.parse_line(f'=A1\t1')
+        sheet.add_line(f'=A1\t1')
 
         result = sheet.calculate()
         for y in range(1, size_y + 1):
@@ -105,7 +105,7 @@ class TestSheetCalculate:
             # Добавить цикличность
             line.append('=A1' if y == SheetSize.Max_Y else f'=A{y + 1}')
 
-            sheet.parse_line('\t'.join(line))
+            sheet.add_line('\t'.join(line))
 
         result = sheet.calculate()
         for y in range(1, sheet.get_size().y + 1):
@@ -122,7 +122,7 @@ class TestSheetCalculate:
             line = [f'={chr(ord("A") + x)}{y}+1' for x in range(1, sheet.get_size().x)]
             line.append('=1' if y == sheet.get_size().y else f'=A{y + 1}+1')
 
-            sheet.parse_line('\t'.join(line))
+            sheet.add_line('\t'.join(line))
 
         result = sheet.calculate()
         for y in range(1, sheet.get_size().y + 1):
@@ -135,9 +135,9 @@ class TestSheetCalculate:
         """
 
         sheet = Sheet('3\t3')
-        sheet.parse_line("=A1\t=3-1*2+1\t'Sample")
-        sheet.parse_line("=C1\t=A2-7/2\t=B1-8/2")
-        sheet.parse_line("'\t=A3\t=B3")
+        sheet.add_line("=A1\t=3-1*2+1\t'Sample")
+        sheet.add_line("=C1\t=A2-7/2\t=B1-8/2")
+        sheet.add_line("'\t=A3\t=B3")
 
         result = sheet.calculate()
 

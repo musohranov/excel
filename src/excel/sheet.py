@@ -15,9 +15,6 @@ class Sheet:
     Лист.
     """
 
-    class ParseError(ValueError):
-        pass
-
     def __init__(self, line):
         """
         Конструктор.
@@ -37,26 +34,26 @@ class Sheet:
 
         return self._size
 
-    def parse_line(self, line):
+    def add_line(self, line):
         """
-        Разобрать строку листа.
+        Добавить строку.
 
         :param str line: Строка со значениями в ячейках.
-        :raises Sheet.ParseError:
+        :raises ValueError:
         """
-
-        if len(self._cell_list) == self._size.y * self._size.x:
-            raise self.ParseError('Достигнут предел размерности таблицы по вертикали!')
 
         error_text = f'Строка со значением ячеек должна содержать ' \
                      f'"{self._size.x}" выражений разделенных символом табуляции!'
 
         if not isinstance(line, str):
-            raise self.ParseError(error_text)
+            raise ValueError(error_text)
 
         cell_value_list = line.split('\t')
         if not (len(cell_value_list) == self._size.x):
-            raise self.ParseError(error_text)
+            raise ValueError(error_text)
+
+        if len(self._cell_list) >= self._size.y * self._size.x:
+            raise ValueError('Достигнут предел размерности таблицы по вертикали!')
 
         # Заполнить текущую строку ячейками
         line_number = int(len(self._cell_list) / self._size.x) + 1
