@@ -127,11 +127,11 @@ class Sheet:
                     del cell_exp.source_exp[0]
                     continue
 
-                # Если ссылка указывает не на занчение, добавляем значение ссылки в результирующий список-выражение.
+                # Если ссылка указывает не на значение, добавляем значение ссылки в результирующий список-выражение.
                 # Иначе, выражение добавляем в стэк выражений необходимых для вычисления.
 
                 ref_link = item.get_value()
-                ref_value = sheet_cell_value[ref_link]
+                ref_value = sheet_cell_value.get(ref_link, Sheet._CalcError.Calc)
 
                 if not isinstance(ref_value, ExpressionValue):
                     cell_exp.result_exp.append(ref_value)
