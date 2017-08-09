@@ -98,67 +98,69 @@ class Sheet:
     def _calc_expression(cell_key, expression, sheet_cell_value):
         """
         Вычислить выражение.
+        Вычисление происходит без рекурсии!
 
         :param tuple(int, int) cell_key: Координаты ячейки (x, y).
         :param list expression: Элементы задающие выражения (см. ExpressionValue.get_value).
         :param dict sheet_cell_value: Текущие вычисленные значения листа.
         """
 
-        if not (isinstance(sheet_cell_value, dict) and len(sheet_cell_value) > 0):
-            raise RuntimeError('Значения листа не должны быть пусты!')
-
-        # Вычисление происходит без рекурсии!
         CellExp = namedtuple('CellExp', 'cell_key source_exp result_exp')
 
-        # Стэк ячеек с выражениями (ключ ячейки, исходное выражения, выражение со значениями).
-        cell_exp_stack = [CellExp(cell_key, list(expression), [])]
+        class CircleRefError(RuntimeError):
+            pass
 
-        # Пока стек выражений не пуст, обрабатываем.
-        while cell_exp_stack:
-            cell_exp = cell_exp_stack[-1]
+        # 1. Добавить выражение в стэк для очередного расчета
+        process_exp_stack = [CellExp(cell_key, expression, [])]
 
-            # Обработка выражения.
-            while cell_exp.source_exp:
-                item = cell_exp.source_exp[0]
+        try:
+            while process_exp_stack:
+                cell_exp = process_exp_stack[-1]
 
-                # Если элемент выражения не является ссылкой, добавляем элемент в результирующий список-выражение.
-                if not isinstance(item, RefValue):
-                    cell_exp.result_exp.append(item.get_value() if isinstance(item, NumberValue) else item)
+                # 2. Обработка выражения.
+                # Обойти все элементы выражения и если встречаем ссылку, то перейти к расчету этого выражения
+                while cell_exp.source_exp:
+                    exp_item = cell_exp.source_exp[0]
+
+                    if isinstance(exp_item, RefValue):
+                        ref_cell_key = exp_item.get_value()
+
+                        # Проверка на цикличность.
+                        if any(exp.cell_key == ref_cell_key for exp in process_exp_stack):
+                            raise CircleRefError()
+
+                        ref_value = sheet_cell_value.get(ref_cell_key, Sheet._CalcError.Calc)
+
+                        # Значения ячейки по указанной ссылки содержит выражение.
+                        # Выражение помещаем в стек для вычислений
+                        if isinstance(ref_value, ExpressionValue):
+                            process_exp_stack.append(CellExp(ref_cell_key, ref_value.get_value(), []))
+                            break
+
+                        item_value = ref_value
+
+                    else:
+                        item_value = exp_item.get_value() if not exp_item in ExpressionValue.Operator.All else exp_item
+
+                    cell_exp.result_exp.append(item_value)
                     del cell_exp.source_exp[0]
-                    continue
 
-                # Если ссылка указывает не на значение, добавляем значение ссылки в результирующий список-выражение.
-                # Иначе, выражение добавляем в стэк выражений необходимых для вычисления.
+                # 3. Выражение более не содержит ссылок на другие ячейки, можно приступать к вычислению.
+                if not cell_exp.source_exp:
+                    try:
+                        result = ExpressionValue.calc(cell_exp.result_exp)
+                    except:
+                        result = Sheet._CalcError.Calc
+                    sheet_cell_value[cell_exp.cell_key] = result
 
-                ref_link = item.get_value()
-                ref_value = sheet_cell_value.get(ref_link, Sheet._CalcError.Calc)
-
-                if not isinstance(ref_value, ExpressionValue):
-                    cell_exp.result_exp.append(ref_value)
-                    del cell_exp.source_exp[0]
+                    process_exp_stack.pop()
                 else:
-                    if any(exp.cell_key == ref_link for exp in cell_exp_stack):
-                        # Циклическая ссылка! Для каждого элемента стэка расчета, прописать ошибку
-                        for cell_exp in cell_exp_stack:
-                            sheet_cell_value[cell_exp.cell_key] = Sheet._CalcError.Circle_Ref
-
-                        return
-
-                    cell_exp_stack.append(CellExp(ref_link, ref_value.get_value(), []))
-                    break
-
-            if not cell_exp.source_exp:
-                # Обработка выражения закончена, вычислить результат.
-                try:
-                    result = ExpressionValue.calc(cell_exp.result_exp)
-                except:
-                    result = Sheet._CalcError.Calc
-                sheet_cell_value[cell_exp.cell_key] = result
-
-                cell_exp_stack.pop()
-            else:
-                # Приступить к обработке очередного выражения.
-                pass
+                    # Приступить к обработке очередного выражения.
+                    pass
+        except CircleRefError:
+            # Циклическая ссылка! Для каждого элемента стэка расчета, прописать ошибку
+            for cell_exp in process_exp_stack:
+                sheet_cell_value[cell_exp.cell_key] = Sheet._CalcError.Circle_Ref
 
 
 class SheetSize:
