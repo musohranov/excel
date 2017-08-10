@@ -5,7 +5,10 @@ import pytest
 from src.excel.cell.number_value import NumberValue
 from src.excel.cell.ref_value import RefValue
 
-from src.excel.cell.expression_value import *
+from src.excel.cell.expression_value import _Operator as Operator
+from src.excel.cell.expression_value import _CalcExpError as CalcExpError
+from src.excel.cell.expression_value import _calc_exp_wo_ref as calc_exp_wo_ref
+from src.excel.cell.expression_value import ExpressionValue
 
 
 class TestExpressionValue:
@@ -62,41 +65,33 @@ class TestExpressionValue:
             ExpressionValue('=' + ''.join([o_1, o_2, o_3, o_4, o_5][:o_len - 1]))
 
 
-class TestExpressionValueCalc:
-    @pytest.mark.parametrize('value', ['',
-                                       None,
-                                       'Text',
-                                       "'Text",
+class TestCalcExpWoRef:
+    @pytest.mark.parametrize('value', [None,
                                        1,
+                                       '',
+                                       [],
+                                       "'Text",
                                        [1, '+'],
                                        [1, 2, '-'],
                                        ['*', 1, 2],
-                                       [1, '+', '0']])
+                                       [1, '+', '0'],
+                                       [1.1, '+', 0]])
     def test_1(self, value):
         """
         Не корректное выражение.
         :param value: Значение.
         """
 
-        with pytest.raises(ExpressionValue.CalcError):
-            ExpressionValue.calc(value)
+        with pytest.raises(CalcExpError):
+            calc_exp_wo_ref(value)
 
     @pytest.mark.parametrize('value', [([None], None),
                                        (['1'], '1'),
                                        ([''], ''),
                                        ([1], 1),
+                                       ([1.9], 1),
                                        ([-1], -1),
-                                       ([1, '+', 2], 3),
-                                       ([1, '+', -2], -1),
-                                       ([1, '-', 2], -1),
-                                       ([1, '-', -2], 3),
-                                       ([1, '*', 2], 2),
-                                       ([1, '*', -2], -2),
-                                       ([4, '/', 2], 2),
-                                       ([5, '/', 3], 1),
-                                       ([11, '/', 4], 2),
-                                       ([1, '/', 2], 0),
-                                       ([4, '*', -2], -8),
+                                       ([-1.9], -1),
                                        ([5, '-', 2, '+', 1, '*', 3, '/', 2], 6)])
     def test_2(self, value):
         """
@@ -104,4 +99,24 @@ class TestExpressionValueCalc:
         :param value: Значение.
         """
 
-        assert ExpressionValue.calc(value[0]) == value[1]
+        assert calc_exp_wo_ref(value[0]) == value[1]
+
+
+class TestOperatorExec:
+    @pytest.mark.parametrize('params', [(Operator.Plus, 1, 1, 2),
+                                        (Operator.Plus, 1, -2, -1),
+                                        (Operator.Minus, 1, 1, 0),
+                                        (Operator.Minus, 1, -2, 3),
+                                        (Operator.Multiply, 2, 1, 2),
+                                        (Operator.Multiply, -2, 1, -2),
+                                        (Operator.Divide, 2, 1, 2),
+                                        (Operator.Divide, 2, 3, 0),
+                                        (Operator.Divide, 2, -3, 0),
+                                        (Operator.Divide, 5, -2, -2)])
+    def test_1(self, params):
+        """
+        Оператор "Плюс".
+        :param tuple params: Оператор, операнды и результат.
+        """
+
+        assert Operator.exec(*(list(params[:3]))) == params[3]

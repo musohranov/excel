@@ -3,7 +3,7 @@
 import pytest
 
 from src.excel.cell.value import Value
-from src.excel.cell.expression_value import ExpressionValue
+from src.excel.cell.expression_value import _CalcExpError as CalcExpError
 
 from src.excel.sheet import *
 
@@ -106,7 +106,7 @@ class TestSheetCalculate:
 
         result = sheet.calculate()
         for y in range(1, size_y + 1):
-            assert result[(1, y)] == ExpressionValue._CalcError.Circle_Ref
+            assert result[(1, y)] == str(CalcExpError.circle_ref())
             assert result[(2, y)] == 1
 
     def test_3(self):
@@ -126,7 +126,7 @@ class TestSheetCalculate:
         result = sheet.calculate()
         for y in range(1, sheet.get_size().y + 1):
             for x in range(1, sheet.get_size().x + 1):
-                assert result[(x, y)] == ExpressionValue._CalcError.Circle_Ref
+                assert result[(x, y)] == str(CalcExpError.circle_ref())
 
     def test_4(self):
         """
@@ -157,7 +157,7 @@ class TestSheetCalculate:
         sheet.add_line('=B1')
 
         result = sheet.calculate()
-        assert result[(1, 1)] == ExpressionValue._CalcError.Calc
+        assert result[(1, 1)] == str(CalcExpError.not_valid_ref())
 
     def test_6(self):
         """
@@ -171,17 +171,17 @@ class TestSheetCalculate:
 
         result = sheet.calculate()
 
-        assert result[(1, 1)] == ExpressionValue._CalcError.Circle_Ref
+        assert result[(1, 1)] == str(CalcExpError.circle_ref())
         assert result[(2, 1)] == 5
         assert result[(3, 1)] == 'Sample'
 
         assert result[(1, 2)] == 'Sample'
-        assert result[(2, 2)] == ExpressionValue._CalcError.Calc
+        assert result[(2, 2)] == str(CalcExpError.calc_exp())
         assert result[(3, 2)] == -1
 
         assert result[(1, 3)] == ''
         assert result[(2, 3)] == ''
-        assert result[(3, 3)] == ExpressionValue._CalcError.Calc
+        assert result[(3, 3)] == str(CalcExpError.not_valid_ref())
 
 
 class TestSheetSizeConstructor:

@@ -24,5 +24,3 @@ class NumberValue(Value):
             raise ValueError(f'Значение "{value}" не является целым положительным числом!')
 
         self._value = int(value)
-
-

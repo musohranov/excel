@@ -2,11 +2,6 @@
 
 import pytest
 
-from src.excel.cell.number_value import NumberValue
-from src.excel.cell.empty_value import EmptyValue
-from src.excel.cell.text_value import TextValue
-from src.excel.cell.expression_value import ExpressionValue
-
 from src.excel.cell.cell import *
 
 

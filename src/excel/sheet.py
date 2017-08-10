@@ -6,9 +6,6 @@
 
 from .cell import cell
 from .cell.expression_value import ExpressionValue
-from .cell.ref_value import RefValue
-
-__all__ = ['Sheet', 'SheetSize']
 
 
 class Sheet:
@@ -83,7 +80,7 @@ class Sheet:
         # Вычислить результат для всех выражений.
         for key, cell_value in sheet_cell_value.items():
             if isinstance(cell_value, ExpressionValue):
-                ExpressionValue._calc_expression(key, cell_value.get_value(), sheet_cell_value)
+                cell_value.calc(key, sheet_cell_value)
 
         return sheet_cell_value
 
