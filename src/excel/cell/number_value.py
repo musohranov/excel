@@ -15,12 +15,14 @@ class NumberValue(Value):
         Конструктор.
 
         :param str value: Строка задающая значение.
-        :raises Value.ParseError:
+        :raises ValueError:
         """
 
         super().__init__()
 
-        if isinstance(value, str) and value.isdigit() and int(value) >= 0:
-            self._value = int(value)
-        else:
-            raise self.ParseError(f'Значение "{value}" не является целым положительным числом!')
+        if not (isinstance(value, str) and value.isdigit() and int(value) >= 0):
+            raise ValueError(f'Значение "{value}" не является целым положительным числом!')
+
+        self._value = int(value)
+
+

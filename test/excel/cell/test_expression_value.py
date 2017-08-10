@@ -20,7 +20,7 @@ class TestExpressionValue:
         :param value: Значение.
         """
 
-        with pytest.raises(ExpressionValue.ParseError):
+        with pytest.raises(ValueError):
             ExpressionValue(value)
 
     def test_2(self):

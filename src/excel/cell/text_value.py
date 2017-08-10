@@ -15,12 +15,12 @@ class TextValue(Value):
         Конструктор.
 
         :param str value: Строка задающая значение.
-        :raises Value.ParseError:
+        :raises ValueError:
         """
 
         super().__init__()
 
-        if isinstance(value, str) and len(value) > 0 and value[0] == "'":
-            self._value = value[1:]
-        else:
-            raise self.ParseError(f'Значение "{value}" не является текстом!')
+        if not (isinstance(value, str) and len(value) > 0 and value[0] == "'"):
+            raise ValueError(f'Значение "{value}" не является текстом!')
+
+        self._value = value[1:]

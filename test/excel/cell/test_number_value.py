@@ -5,14 +5,20 @@ from src.excel.cell.number_value import *
 
 
 class TestNumberValue:
-    @pytest.mark.parametrize('value', ['-1', '1.1', '1.0', None, 1, 1.5, -1])
+    @pytest.mark.parametrize('value', ['-1',
+                                       '1.1',
+                                       '1.0',
+                                       None,
+                                       1,
+                                       1.5,
+                                       -1])
     def test_1(self, value):
         """
         Не корректное создание экземпляра класса.
         :param value: Значение.
         """
 
-        with pytest.raises(NumberValue.ParseError):
+        with pytest.raises(ValueError):
             NumberValue(value)
 
     @pytest.mark.parametrize('value', ['1', '0'])

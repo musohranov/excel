@@ -43,14 +43,14 @@ class ExpressionValue(Value):
         Конструктор.
 
         :param str value: Строка задающая значение.
-        :raises Value.ParseError:
+        :raises ValueError:
         """
 
         super().__init__()
 
         # Базовая проверка
         if not (isinstance(value, str) and len(value) >= 1 and value[0] == '='):
-            raise self.ParseError(f'Значение "{value}" не является выражением!')
+            raise ValueError(f'Значение "{value}" не является выражением!')
 
         if value[1:] == '':
             self._value = []
@@ -58,7 +58,7 @@ class ExpressionValue(Value):
 
         # Проверка на присутствие только корректных символов
         if re.search(r'[^A-Z0-9+\-*/]', value[1:].upper()):
-            raise self.ParseError(f'Выражение "{value}" содержит не корректные символы!')
+            raise ValueError(f'Выражение "{value}" содержит не корректные символы!')
 
         # Разбить выражение на массив состоящий из операндов и операторов
         value_list_ = value[1:].upper()
@@ -76,14 +76,14 @@ class ExpressionValue(Value):
                 if len(value_list) > 0 and value_list[-1] not in self.Operator.All:
                     value_list.append(v)
                 else:
-                    raise self.ParseError(f'Значение "{value}" не является выражением!')
+                    raise ValueError(f'Значение "{value}" не является выражением!')
             else:
                 operand = None
                 for value_class in [NumberValue, RefValue]:
                     try:
                         operand = value_class(v)
                         break
-                    except self.ParseError:
+                    except ValueError:
                         pass
 
                 # Если элементом (выражения) является операнд, то он должен быть числом либо ссылкой и предыдущий
@@ -91,11 +91,11 @@ class ExpressionValue(Value):
                 if operand and (len(value_list) == 0 or value_list[-1] in self.Operator.All):
                     value_list.append(operand)
                 else:
-                    raise self.ParseError(f'Значение "{value}" не является выражением!')
+                    raise ValueError(f'Значение "{value}" не является выражением!')
 
         # Если выражение не пусто, то последний элемент должен быть строго операнд
         if not (len(value_list) > 0 and isinstance(value_list[-1], (NumberValue, RefValue))):
-            raise self.ParseError(f'Значение "{value}" не является выражением!')
+            raise ValueError(f'Значение "{value}" не является выражением!')
 
         self._value = value_list
 

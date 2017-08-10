@@ -6,9 +6,6 @@ class Value:
     Значение.
     """
 
-    class ParseError(ValueError):
-        pass
-
     def __init__(self):
         """
         Конструктор.
