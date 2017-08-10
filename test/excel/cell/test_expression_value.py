@@ -1,116 +1,11 @@
 # coding: utf8
 
 import pytest
-from src.excel.cell import *
 
+from src.excel.cell.number_value import NumberValue
+from src.excel.cell.ref_value import RefValue
 
-class TestCell:
-    @pytest.mark.parametrize('value', ['-1', None, 'Sample', '=X'])
-    def test_1(self, value):
-        """
-        Не корректное создание экземпляра класса.
-        :param value: Значение.
-        """
-
-        with pytest.raises(Cell.ParseError):
-            Cell(value)
-
-    @pytest.mark.parametrize('value', [('1', NumberValue),
-                                       ('', EmptyValue),
-                                       ("'Sample", TextValue),
-                                       ('=1', ExpressionValue)])
-    def test_1(self, value):
-        """
-        Корректное создание экземпляра класса.
-        :param value: Значение.
-        """
-
-        assert isinstance(Cell(value[0]).get_value(),value[1])
-
-
-class TestEmptyValue:
-    @pytest.mark.parametrize('value', ['1', None, 0, 'None'])
-    def test_1(self, value):
-        """
-        Не корректное создание экземпляра класса.
-        :param value: Значение.
-        """
-
-        with pytest.raises(EmptyValue.ParseError):
-            EmptyValue(value)
-
-    @pytest.mark.parametrize('value', [''])
-    def test_2(self, value):
-        """
-        Корректное создание экземпляра класса.
-        :param str value: Значение.
-        """
-
-        assert EmptyValue(value).get_value() == value
-
-
-class TestNumberValue:
-    @pytest.mark.parametrize('value', ['-1', '1.1', '1.0', None, 1, 1.5, -1])
-    def test_1(self, value):
-        """
-        Не корректное создание экземпляра класса.
-        :param value: Значение.
-        """
-
-        with pytest.raises(NumberValue.ParseError):
-            NumberValue(value)
-
-    @pytest.mark.parametrize('value', ['1', '0'])
-    def test_2(self, value):
-        """
-        Корректное создание экземпляра класса.
-        :param str value: Значение.
-        """
-
-        assert NumberValue(value).get_value() == int(value)
-
-
-class TestTextValue:
-    @pytest.mark.parametrize('value', ['abc', None, 0, ''])
-    def test_1(self, value):
-        """
-        Не корректное создание экземпляра класса.
-        :param value: Значение.
-        """
-
-        with pytest.raises(TextValue.ParseError):
-            TextValue(value)
-
-    @pytest.mark.parametrize('value', ["'", "''", "'1", "'1'", "'abc", "'None", "'0"])
-    def test_2(self, value):
-        """
-        Корректное создание экземпляра класса.
-        :param str value: Значение.
-        """
-
-        assert TextValue(value).get_value() == value[1:]
-
-
-class TestRefValue:
-    @pytest.mark.parametrize('value', ['A0', None, 0, '1A', '', 'A11'])
-    def test_1(self, value):
-        """
-        Не корректное создание экземпляра класса.
-        :param value: Значение.
-        """
-
-        with pytest.raises(RefValue.ParseError):
-            RefValue(value)
-
-    @pytest.mark.parametrize('value', [('A1', (1, 1)),
-                                       ('z9', (26, 9))])
-    def test_2(self, value):
-        """
-        Корректное создание экземпляра класса.
-        :param tuple value: Значение.
-        """
-
-        assert RefValue(value[0]).get_value() == value[1]
+from src.excel.cell.expression_value import *
 
 
 class TestExpressionValue:

@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.excel.cell import *
+from src.excel.cell.cell import Cell
 from src.excel.sheet import *
 
 

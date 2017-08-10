@@ -5,7 +5,10 @@
 """
 
 from collections import namedtuple
-from .cell import *
+
+from .cell.cell import Cell
+from .cell.expression_value import ExpressionValue
+from .cell.ref_value import RefValue
 
 __all__ = ['Sheet', 'SheetSize']
 
