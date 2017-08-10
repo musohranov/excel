@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.excel.cell.cell import Cell
+from src.excel.cell.value import Value
 from src.excel.sheet import *
 
 
@@ -62,11 +62,11 @@ class TestSheetAddLine:
 
         sheet.add_line('')
         assert len(sheet._cell_list) == 1
-        assert isinstance(sheet._cell_list[(1, 1)], Cell)
+        assert isinstance(sheet._cell_list[(1, 1)], Value)
 
         sheet.add_line('')
         assert len(sheet._cell_list) == 2
-        assert isinstance(sheet._cell_list[(1, 2)], Cell)
+        assert isinstance(sheet._cell_list[(1, 2)], Value)
 
 
 class TestSheetCalculate:

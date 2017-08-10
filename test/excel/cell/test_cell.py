@@ -10,7 +10,7 @@ from src.excel.cell.expression_value import ExpressionValue
 from src.excel.cell.cell import *
 
 
-class TestCell:
+class TestParser:
     @pytest.mark.parametrize('value', ['-1',
                                        None,
                                        'Sample',
@@ -23,7 +23,7 @@ class TestCell:
         """
 
         with pytest.raises(ValueError):
-            Cell(value)
+            parser(value)
 
     @pytest.mark.parametrize('value', [('1', NumberValue),
                                        ('', EmptyValue),
@@ -35,4 +35,4 @@ class TestCell:
         :param value: Значение.
         """
 
-        assert isinstance(Cell(value[0]).get_value(), value[1])
+        assert isinstance(parser(value[0]), value[1])

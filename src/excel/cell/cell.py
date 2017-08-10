@@ -7,37 +7,19 @@ from .text_value import TextValue
 from .expression_value import ExpressionValue
 
 
-class Cell:
+def parser(value):
     """
-    Ячейка.
+    Разобрать значение ячейки.
+
+    :param str value: Значение ячейки.
+    :rtype: Value
+    :raises ValueError:
     """
 
-    class ParseError(ValueError):
-        pass
+    for value_class in [EmptyValue, NumberValue, TextValue, ExpressionValue]:
+        try:
+            return value_class(value)
+        except ValueError:
+            pass
 
-    def __init__(self, value):
-        """
-        Конструктор.
-
-        :param str value: Строка задающая значение ячейки.
-        :raises ValueError:
-        """
-
-        self._value = None
-        for value_class in [EmptyValue, NumberValue, TextValue, ExpressionValue]:
-            try:
-                self._value = value_class(value)
-                break
-            except ValueError:
-                pass
-
-        if not self._value:
-            raise ValueError(f'Значение "{value}" не соответствует ни одному типу!')
-
-    def get_value(self):
-        """
-        Получить значение.
-        :rtype: Value
-        """
-
-        return self._value
+    raise ValueError(f'Значение "{value}" не соответствует ни одному типу!')

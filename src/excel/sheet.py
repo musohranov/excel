@@ -6,7 +6,7 @@
 
 from collections import namedtuple
 
-from .cell.cell import Cell
+from .cell import cell
 from .cell.expression_value import ExpressionValue
 from .cell.ref_value import RefValue
 
@@ -61,7 +61,7 @@ class Sheet:
         # Заполнить текущую строку ячейками
         line_number = int(len(self._cell_list) / self._size.x) + 1
         for i, value in enumerate(cell_value_list):
-            self._cell_list[(i + 1, line_number)] = Cell(value)
+            self._cell_list[(i + 1, line_number)] = cell.parser(value)
 
     def calculate(self):
         """
@@ -79,7 +79,6 @@ class Sheet:
 
         # Вычислить результат для всех не выражений.
         for key, cell_value in self._cell_list.items():
-            cell_value = cell_value.get_value()
             sheet_cell_value[key] = \
                 cell_value.get_value() if not isinstance(cell_value, ExpressionValue) else cell_value
 
@@ -217,10 +216,9 @@ class SheetSize:
     @classmethod
     def parser(cls, line):
         """
-        Разобрать строку.
-        Строка в формате Y\tX
+        Разобрать размер листа.
 
-        :param str line: Строка.
+        :param str line: Строка (в формате Y\tX).
         :rtype: SheetSize
 
         :raises ValueError:
