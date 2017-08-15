@@ -263,5 +263,9 @@ def _calc_exp_with_ref(cell_key, exp, sheet_cell_value):
                 process_exp_stack.pop()
 
     except _CalcExpError as e:
-        for process_exp in process_exp_stack:
-            sheet_cell_value[process_exp.cell_key] = str(e)
+        sheet_cell_value[process_exp_stack[-1].cell_key] = str(e)
+
+        # В остальных, связанных ячейках по стэку, прописываем "Ошибка вычисления"
+        error_text = str(_CalcExpError.calc_exp())
+        for process_exp in process_exp_stack[0: -1]:
+            sheet_cell_value[process_exp.cell_key] = error_text

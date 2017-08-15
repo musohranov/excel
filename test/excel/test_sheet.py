@@ -105,9 +105,9 @@ class TestSheetCalculate:
         sheet.add_line(f'=A1\t1')
 
         result = sheet.calculate()
-        for y in range(1, size_y + 1):
-            assert result[(1, y)] == str(CalcExpError.circle_ref())
-            assert result[(2, y)] == 1
+        for y in range(0, size_y):
+            assert result[(1, y + 1)] == str(CalcExpError.circle_ref()) if y == size_y else str(CalcExpError.calc_exp())
+            assert result[(2, y + 1)] == 1
 
     def test_3(self):
         """
@@ -124,9 +124,10 @@ class TestSheetCalculate:
             sheet.add_line('\t'.join(line))
 
         result = sheet.calculate()
-        for y in range(1, sheet.get_size().y + 1):
-            for x in range(1, sheet.get_size().x + 1):
-                assert result[(x, y)] == str(CalcExpError.circle_ref())
+        for y in range(0, sheet.get_size().y):
+            for x in range(0, sheet.get_size().x):
+                assert result[(x + 1, y + 1)] == \
+                       str(CalcExpError.circle_ref()) if y == sheet.get_size().y else str(CalcExpError.calc_exp())
 
     def test_4(self):
         """
