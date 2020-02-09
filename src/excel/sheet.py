@@ -1,43 +1,39 @@
-# coding: utf8
-
 """
-Лист.
+Механика листа.
+Предоставляется функциональность добавления расчетных строк с ячейками, с последующей механикой расчета.
 """
 
-from .cell import cell
-from .cell.expression_value import ExpressionValue
+from excel.cell.cell import CellValue
+from excel.cell.expression_value import ExpressionValue
 
 
 class Sheet:
     """
-    Лист.
+    Лист
     """
 
-    def __init__(self, line):
+    def __init__(self, size_line: str):
         """
-        Конструктор.
-
-        :param str line: Строка задающая размер листа.
-        :raises ValueError:
+        :param size_line: Строка задающая размер листа
+        :raise: ValueError
         """
 
-        self._size = SheetSize.parser(line)
-        self._cell_list = {}
+        self._size: SheetSize = SheetSize.parser(size_line)
+        self._cell_list: dict = {}
 
-    def get_size(self):
+    def get_size(self) -> 'SheetSize':
         """
-        Получить размер листа.
-        :rtype: SheetSize
+        Получить размер листа
         """
 
         return self._size
 
-    def add_line(self, line):
+    def add_line(self, line: str):
         """
-        Добавить строку.
+        Добавить строку с ячейками
 
-        :param str line: Строка со значениями в ячейках.
-        :raises ValueError:
+        :param line: Строка со значениями в ячейках
+        :raise: ValueError
         """
 
         error_text = f'Строка со значением ячеек должна содержать ' \
@@ -56,14 +52,12 @@ class Sheet:
         # Заполнить текущую строку ячейками
         line_number = int(len(self._cell_list) / self._size.x) + 1
         for i, value in enumerate(cell_value_list):
-            self._cell_list[(i + 1, line_number)] = cell.parser(value)
+            self._cell_list[(i + 1, line_number)] = CellValue.parser(value)
 
-    def calculate(self):
+    def calculate(self) -> dict:
         """
-        Рассчитать значения.
-
-        :rtype: dict
-        :return Ключом является кортеж (x, y), значением вычисленное выражение.
+        Рассчитать значения
+        :return Ключом является кортеж (x, y), значением вычисленное выражение
         """
 
         if not (len(self._cell_list) == (self._size.x * self._size.y)):
@@ -93,58 +87,56 @@ class SheetSize:
     'Ссылки на ячейки состоят из одной латинской буквы и следующей за ней цифры'.
     """
 
-    # Максимальный размер листа по вертикали (1-9)
-    Max_Y = 9
+    MAX_Y = 9
+    """
+    Максимальный размер листа по вертикали (1-9)
+    """
 
-    # Максимальный размер листа по горизонтали (A-Z)
-    Max_X = 26
+    MAX_X = 26
+    """
+    Максимальный размер листа по горизонтали (A-Z)
+    """
 
-    def __init__(self, y, x):
+    def __init__(self, y: int, x: int):
         """
-        Конструктор.
+        :param y: Размер по вертикали
+        :param x: Размер по горизонтали
 
-        :param int y: Размер по вертикали.
-        :param int x: Размер по горизонтали.
-
-        :raises ValueError:
+        :raise: ValueError
         """
 
-        if not(isinstance(y, int) and 0 < y <= self.Max_Y):
-            raise ValueError(f'Размер по вертикали должен лежать в диапазоне 1-{self.Max_Y}!')
-        self._y = y
+        if not(isinstance(y, int) and 0 < y <= self.MAX_Y):
+            raise ValueError(f'Размер по вертикали должен лежать в диапазоне 1-{self.MAX_Y}!')
+        self._y: int = y
 
-        if not(isinstance(x, int) and 0 < x <= self.Max_X):
-            raise ValueError(f'Размер по горизонтали должен лежать в диапазоне 1-{self.Max_X}!')
-        self._x = x
+        if not(isinstance(x, int) and 0 < x <= self.MAX_X):
+            raise ValueError(f'Размер по горизонтали должен лежать в диапазоне 1-{self.MAX_X}!')
+        self._x: int = x
 
     @property
-    def y(self):
+    def y(self) -> int:
         """
-        Получить размер по вертикали.
-        :rtype: int
+        Получить размер по вертикали
         """
         return self._y
 
     @property
-    def x(self):
+    def x(self) -> int:
         """
         Получить размер по горизонтали.
-        :rtype: int
         """
         return self._x
 
     @classmethod
-    def parser(cls, line):
+    def parser(cls, line: str) -> 'SheetSize':
         """
-        Разобрать размер листа.
+        Разобрать размер листа
 
-        :param str line: Строка (в формате Y\tX).
-        :rtype: SheetSize
-
+        :param line: Строка (в формате Y\tX)
         :raises ValueError:
         """
 
-        error_text = f'Строка с размером листа должна быть в формате "<1-{cls.Max_Y}>/t<1-{cls.Max_X}>"!'
+        error_text = f'Строка с размером листа должна быть в формате "<1-{cls.MAX_Y}>/t<1-{cls.MAX_X}>"!'
 
         if not (isinstance(line, str) and line):
             raise ValueError(error_text)

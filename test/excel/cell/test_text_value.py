@@ -1,7 +1,5 @@
-# coding: utf8
-
 import pytest
-from src.excel.cell.text_value import TextValue
+from excel.cell.text_value import TextValue
 
 
 class TestTextValue:

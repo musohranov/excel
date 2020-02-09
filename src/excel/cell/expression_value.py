@@ -1,15 +1,16 @@
-# coding: utf8
+"""
+Тип ячейки 'Выражение'
+"""
 
 from collections import namedtuple
+from typing import Tuple, Any, List, Union
 
-from .number_value import NumberValue
-from .ref_value import RefValue
-from .value import Value
-
-__all__ = ['ExpressionValue']
+from excel.cell.number_value import NumberValue
+from excel.cell.ref_value import RefValue
+from excel.cell.cell import CellValue
 
 
-class ExpressionValue(Value):
+class ExpressionValue(CellValue):
     """
     Выражение.
 
@@ -20,12 +21,10 @@ class ExpressionValue(Value):
     Скобки запрещены. Все операции одинаково приоритетны.
     """
 
-    def __init__(self, value):
+    def __init__(self, value: str):
         """
-        Конструктор.
-
-        :param str value: Строка задающая значение.
-        :raises ValueError:
+        :param value: Строка задающая значение
+        :raise: ValueError
         """
 
         super().__init__()
@@ -82,11 +81,11 @@ class ExpressionValue(Value):
 
         self._value = exp_item_list
 
-    def calc(self, cell_key, sheet_cell_value):
+    def calc(self, cell_key: Tuple, sheet_cell_value: Any):
         """
-        Расчитать выражение.
-        :param tuple cell_key: Ключ ячейки.
-        :param sheet_cell_value: Значения листа.
+        Расчитать выражение
+        :param tuple cell_key: Ключ ячейки
+        :param sheet_cell_value: Значения листа
         """
 
         _calc_exp_with_ref(cell_key, self.get_value(), sheet_cell_value)
@@ -94,36 +93,45 @@ class ExpressionValue(Value):
 
 class _Operator:
     """
-    Операторы выражения.
+    Операторы выражения
     """
 
-    # Плюс.
     Plus = '+'
+    """
+    Плюс
+    """
 
-    # Минус.
     Minus = '-'
+    """
+    Минус
+    """
 
-    # Умножить.
     Multiply = '*'
+    """
+    Умножить
+    """
 
-    # Делить.
     Divide = '/'
+    """
+    Поделить
+    """
 
-    # Все операторы
     All = [Plus, Minus, Multiply, Divide]
+    """
+    Список всех операторов
+    """
 
     @classmethod
-    def exec(cls, operator, left_value, right_value):
+    def exec(cls, operator: str, left_value: int, right_value: int) -> int:
         """
         Выполнить оператор.
 
             * Все вычисления выполняются с помощью целочисленной арифметики со знаком.
 
         :param operator: Оператор.
-        :param int left_value: Операнд.
-        :param int right_value: Операнд.
+        :param left_value: Операнд.
+        :param right_value: Операнд.
 
-        :rtype: int
         :raise: _CalcExpError
         """
 
@@ -145,28 +153,37 @@ class _CalcExpError(RuntimeError):
     Ошибка вычисления выражения.
     """
 
-    # Ошибка выполнения выражения
     @classmethod
-    def calc_exp(cls): return _CalcExpError('#CalcError')
+    def calc_exp(cls) -> '_CalcExpError':
+        """
+        Ошибка выполнения выражения
+        """
+        return _CalcExpError('#CalcError')
 
-    # Циклическая ссылка
     @classmethod
-    def circle_ref(cls): return _CalcExpError('#CircleRef')
+    def circle_ref(cls) -> '_CalcExpError':
+        """
+        Циклическая ссылка
+        """
+        return _CalcExpError('#CircleRef')
 
-    # Некорректная ссылка
     @classmethod
-    def not_valid_ref(cls): return _CalcExpError('#RefNotValid')
+    def not_valid_ref(cls) -> '_CalcExpError':
+        """
+        Некорректная ссылка
+        """
+        return _CalcExpError('#RefNotValid')
 
 
-def _calc_exp_wo_ref(exp):
+def _calc_exp_wo_ref(exp: List[str]) -> Union[int, str, None]:
     """
-    Вычислить выражение без налиция ссылок (на ячейки).
+    Вычислить выражение без наличия ссылок (на ячейки).
+    Вычисление происходит без рекурсии!
 
-        * Все вычисления выполняются с помощью целочисленной арифметики со знаком.
-        * Операции над строками текста запрещены.
+    * Все вычисления выполняются с помощью целочисленной арифметики со знаком.
+    * Операции над строками текста запрещены.
 
-    :param list exp: Выражение.
-    :rtype: int|str|None
+    :param exp: Выражение
     :raise: _CalcExpError
     """
 
@@ -177,37 +194,36 @@ def _calc_exp_wo_ref(exp):
     if len(exp) == 1 and (exp[0] is None or isinstance(exp[0], str)):
         return exp[0]
 
-    result_exp = exp
+    result_exp: List[Union[str, int]] = exp
     while len(result_exp) > 1:
         operator = result_exp[1]
         operator_result = _Operator.exec(operator, result_exp[0], result_exp[2])
 
         del result_exp[0: 3]
-        result_exp.insert(0, int(operator_result))
+        result_exp.insert(0, operator_result)
 
     return int(result_exp[0])
 
 
-def _calc_exp_with_ref(cell_key, exp, sheet_cell_value):
+def _calc_exp_with_ref(cell_key: Tuple[int, int], exp: List, sheet_cell_value: dict):
     """
     Вычислить выражение.
     Вычисление происходит без рекурсии!
 
-    :param tuple(int, int) cell_key: Координаты ячейки (x, y).
-    :param list exp: Элементы задающие выражения (см. ExpressionValue.get_value).
-    :param dict sheet_cell_value: Текущие вычисленные значения листа.
+    :param cell_key: Координаты ячейки (x, y).
+    :param exp: Элементы задающие выражения (см. ExpressionValue.get_value).
+    :param sheet_cell_value: Текущие вычисленные значения листа.
     """
 
     # Выражение ячейки (Ключ ячейки, исходное выражение, результирующее выражение).
     CellExp = namedtuple('CellExp', 'cell_key source_exp result_exp')
 
-    def process_cell_exp(cell_exp):
+    def process_cell_exp(cell_exp: CellExp) -> Union[CellExp, None]:
         """
-        Обработать выражение ячейки.
+        Обработать выражение ячейки
 
-        :param CellExp cell_exp: Выражение ячейки.
-        :rtype: CellExp
-        :return: Очередное выражение для обработки.
+        :param cell_exp: Выражение ячейки
+        :return: Очередное выражение для обработки
         """
 
         nonlocal sheet_cell_value

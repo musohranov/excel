@@ -1,14 +1,12 @@
-# coding: utf8
-
 import pytest
 
-from src.excel.cell.number_value import NumberValue
-from src.excel.cell.ref_value import RefValue
+from excel.cell.number_value import NumberValue
+from excel.cell.ref_value import RefValue
 
-from src.excel.cell.expression_value import _Operator as Operator
-from src.excel.cell.expression_value import _CalcExpError as CalcExpError
-from src.excel.cell.expression_value import _calc_exp_wo_ref as calc_exp_wo_ref
-from src.excel.cell.expression_value import ExpressionValue
+from excel.cell.expression_value import _Operator as Operator
+from excel.cell.expression_value import _CalcExpError as CalcExpError
+from excel.cell.expression_value import _calc_exp_wo_ref as calc_exp_wo_ref
+from excel.cell.expression_value import ExpressionValue
 
 
 class TestExpressionValue:

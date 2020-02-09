@@ -1,19 +1,19 @@
-# coding: utf8
+"""
+Тип ячейки 'Пустое значение'
+"""
 
-from .value import Value
+from excel.cell.cell import CellValue
 
 
-class EmptyValue(Value):
+class EmptyValue(CellValue):
     """
-    Пустое значение.
+    Пустое значение
     """
 
-    def __init__(self, value):
+    def __init__(self, value: str):
         """
-        Конструктор.
-
-        :param str value: Строка задающая значение.
-        :raises ValueError:
+        :param value: Строка задающая значение
+        :raise: ValueError
         """
 
         super().__init__()
@@ -21,4 +21,4 @@ class EmptyValue(Value):
         if not (isinstance(value, str) and value == ''):
             raise ValueError(f'Значение "{value}" не является пустым!')
 
-        self._value = value
+        self._value: str = value

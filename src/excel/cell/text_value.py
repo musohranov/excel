@@ -1,21 +1,20 @@
-# coding: utf8
+"""
+Тип ячейки 'Текст'
+"""
 
-from .value import Value
+from excel.cell.cell import CellValue
 
 
-class TextValue(Value):
+class TextValue(CellValue):
     """
     Текст.
-
     Начинается с символа '
     """
 
-    def __init__(self, value):
+    def __init__(self, value: str):
         """
-        Конструктор.
-
-        :param str value: Строка задающая значение.
-        :raises ValueError:
+        :param str value: Строка задающая значение
+        :raise: ValueError
         """
 
         super().__init__()

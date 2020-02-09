@@ -1,11 +1,9 @@
-# coding: utf8
-
 import pytest
 
-from src.excel.cell.value import Value
-from src.excel.cell.expression_value import _CalcExpError as CalcExpError
+from excel.cell.cell import CellValue
+from excel.cell.expression_value import _CalcExpError as CalcExpError
 
-from src.excel.sheet import *
+from excel.sheet import *
 
 
 class TestSheetConstructor:
@@ -64,11 +62,11 @@ class TestSheetAddLine:
 
         sheet.add_line('')
         assert len(sheet._cell_list) == 1
-        assert isinstance(sheet._cell_list[(1, 1)], Value)
+        assert isinstance(sheet._cell_list[(1, 1)], CellValue)
 
         sheet.add_line('')
         assert len(sheet._cell_list) == 2
-        assert isinstance(sheet._cell_list[(1, 2)], Value)
+        assert isinstance(sheet._cell_list[(1, 2)], CellValue)
 
 
 class TestSheetCalculate:
@@ -90,7 +88,7 @@ class TestSheetCalculate:
         with pytest.raises(RuntimeError):
             sheet.calculate()
 
-    @pytest.mark.parametrize('size_y', [1, 2, SheetSize.Max_Y])
+    @pytest.mark.parametrize('size_y', [1, 2, SheetSize.MAX_Y])
     def test_2(self, size_y):
         """
         Циклическое вычисление.
@@ -114,12 +112,12 @@ class TestSheetCalculate:
         Максимальная циклическая вложенность\зависимость. =A2, =A3, ..., =Z8, =A1
         """
 
-        sheet = Sheet(f'{SheetSize.Max_Y}\t{SheetSize.Max_X}')
+        sheet = Sheet(f'{SheetSize.MAX_Y}\t{SheetSize.MAX_X}')
         for y in range(1, sheet.get_size().y + 1):
             line = [f'={chr(ord("A") + x)}{y}' for x in range(1, sheet.get_size().x)]
 
             # Добавить цикличность
-            line.append('=A1' if y == SheetSize.Max_Y else f'=A{y + 1}')
+            line.append('=A1' if y == SheetSize.MAX_Y else f'=A{y + 1}')
 
             sheet.add_line('\t'.join(line))
 
@@ -134,7 +132,7 @@ class TestSheetCalculate:
         Максимальное циклическое вычисление. =A2 + 1, =A3 + 1, ..., =Z8 + 1, =1
         """
 
-        sheet = Sheet(f'{SheetSize.Max_Y}\t{SheetSize.Max_X}')
+        sheet = Sheet(f'{SheetSize.MAX_Y}\t{SheetSize.MAX_X}')
         for y in range(1, sheet.get_size().y + 1):
             line = [f'={chr(ord("A") + x)}{y}+1' for x in range(1, sheet.get_size().x)]
 
@@ -196,7 +194,7 @@ class TestSheetSizeConstructor:
                                       ('1', None), (None, '1'),
                                       (-1, 1), (1, -1),
                                       (0, 1), (1, 0),
-                                      (1, SheetSize.Max_X + 1), (SheetSize.Max_Y + 1, 1),
+                                      (1, SheetSize.MAX_X + 1), (SheetSize.MAX_Y + 1, 1),
                                       (1.1, 1), (1, 1.1)])
     def test_1(self, size):
         """
@@ -207,8 +205,8 @@ class TestSheetSizeConstructor:
         with pytest.raises(ValueError):
             SheetSize(size[0], size[1])
 
-    @pytest.mark.parametrize('size_y', [1, SheetSize.Max_Y])
-    @pytest.mark.parametrize('size_x', [1, SheetSize.Max_X])
+    @pytest.mark.parametrize('size_y', [1, SheetSize.MAX_Y])
+    @pytest.mark.parametrize('size_x', [1, SheetSize.MAX_X])
     def test_2(self, size_y, size_x):
         """
         Корректное создание экземпляра класса.
@@ -248,8 +246,8 @@ class TestSheetSizeParser:
         with pytest.raises(ValueError):
             SheetSize.parser(line)
 
-    @pytest.mark.parametrize('size_y', [1, SheetSize.Max_Y])
-    @pytest.mark.parametrize('size_x', [1, SheetSize.Max_X])
+    @pytest.mark.parametrize('size_y', [1, SheetSize.MAX_Y])
+    @pytest.mark.parametrize('size_x', [1, SheetSize.MAX_X])
     def test_2(self, size_y, size_x):
         """
         Корректный разбор.

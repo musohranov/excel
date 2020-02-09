@@ -1,8 +1,10 @@
-# coding: utf8
-
 import pytest
 
-from src.excel.cell.cell import *
+from excel.cell.cell import CellValue
+from excel.cell.empty_value import EmptyValue
+from excel.cell.expression_value import ExpressionValue
+from excel.cell.number_value import NumberValue
+from excel.cell.text_value import TextValue
 
 
 class TestParser:
@@ -18,7 +20,7 @@ class TestParser:
         """
 
         with pytest.raises(ValueError):
-            parser(value)
+            CellValue.parser(value)
 
     @pytest.mark.parametrize('value', [('1', NumberValue),
                                        ('', EmptyValue),
@@ -27,7 +29,7 @@ class TestParser:
     def test_1(self, value):
         """
         Корректное создание экземпляра класса.
-        :param value: Значение.
+        :param tuple value: Значение.
         """
 
-        assert isinstance(parser(value[0]), value[1])
+        assert isinstance(CellValue.parser(value[0]), value[1])

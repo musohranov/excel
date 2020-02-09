@@ -1,7 +1,5 @@
-# coding: utf8
-
 import pytest
-from src.excel.cell.empty_value import *
+from excel.cell.empty_value import *
 
 
 class TestEmptyValue:

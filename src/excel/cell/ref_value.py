@@ -1,22 +1,23 @@
-# coding: utf8
+"""
+Тип ячейки 'Ссылка'
+"""
 
 import re
-from .value import Value
+from typing import Tuple
+
+from excel.cell.cell import CellValue
 
 
-class RefValue(Value):
+class RefValue(CellValue):
     """
     Ссылка.
-
     Одна латинска буква и следующа за ней цифра.
     """
 
-    def __init__(self, value):
+    def __init__(self, value: str):
         """
-        Конструктор.
-
-        :param str value: Строка задающая значение.
-        :raises ValueError:
+        :param value: Строка задающая значение
+        :raise: ValueError
         """
 
         super().__init__()
@@ -27,11 +28,11 @@ class RefValue(Value):
 
         self._value = value.upper()
 
-    def get_value(self):
+    def get_value(self) -> Tuple[int, int]:
         """
         Получить значение.
-
         Преобразует значение ссылки в формате (x, y)
+
         :rtype: tuple(int, int)
         """
 

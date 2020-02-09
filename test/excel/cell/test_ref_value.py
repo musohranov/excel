@@ -1,7 +1,5 @@
-# coding: utf8
-
 import pytest
-from src.excel.cell.ref_value import RefValue
+from excel.cell.ref_value import RefValue
 
 
 class TestRefValue:

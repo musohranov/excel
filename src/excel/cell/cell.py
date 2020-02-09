@@ -1,25 +1,47 @@
-# coding: utf8
+"""
+Механим определения значения ячейки
+"""
 
-from .value import Value
-from .empty_value import EmptyValue
-from .number_value import NumberValue
-from .text_value import TextValue
-from .expression_value import ExpressionValue
+from abc import ABC
+from typing import Any
 
 
-def parser(value):
+class CellValue(ABC):
     """
-    Разобрать значение ячейки.
-
-    :param str value: Значение ячейки.
-    :rtype: Value
-    :raises ValueError:
+    Значение ячейки
     """
 
-    for value_class in [EmptyValue, NumberValue, TextValue, ExpressionValue]:
-        try:
-            return value_class(value)
-        except ValueError:
-            pass
+    def __init__(self):
+        """
+        """
 
-    raise ValueError(f'Значение "{value}" не соответствует ни одному типу!')
+        self._value: Any = None
+
+    def get_value(self) -> Any:
+        """
+        Получить занчение
+        """
+
+        return self._value
+
+    @staticmethod
+    def parser(value: str) -> 'CellValue':
+        """
+        Разобрать значение ячейки.
+
+        :param value: Строковое значение ячейки
+        :raise: ValueError
+        """
+
+        from excel.cell.empty_value import EmptyValue
+        from excel.cell.number_value import NumberValue
+        from excel.cell.text_value import TextValue
+        from excel.cell.expression_value import ExpressionValue
+
+        for value_class in [EmptyValue, NumberValue, TextValue, ExpressionValue]:
+            try:
+                return value_class(value)
+            except ValueError:
+                pass
+
+        raise ValueError(f'Значение "{value}" не соответствует ни одному типу!')
