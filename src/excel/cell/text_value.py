@@ -22,4 +22,4 @@ class TextValue(CellValue):
         if not (isinstance(value, str) and len(value) > 0 and value[0] == "'"):
             raise ValueError(f'Значение "{value}" не является текстом!')
 
-        self._value = value[1:]
+        self._value: str = value[1:]

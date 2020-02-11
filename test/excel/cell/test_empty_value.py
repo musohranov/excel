@@ -1,5 +1,5 @@
 import pytest
-from excel.cell.empty_value import *
+from excel.cell.empty_value import EmptyValue
 
 
 class TestEmptyValue:

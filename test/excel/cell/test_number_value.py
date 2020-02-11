@@ -1,5 +1,5 @@
 import pytest
-from excel.cell.number_value import *
+from excel.cell.number_value import NumberValue
 
 
 class TestNumberValue:

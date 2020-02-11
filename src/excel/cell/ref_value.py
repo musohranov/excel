@@ -26,7 +26,7 @@ class RefValue(CellValue):
                 and re.search(r'[A-Z]', value[0].upper()) is not None and value[1].isdigit() and int(value[1]) > 0):
             raise ValueError(f'Значение "{value}" не является ссылкой!')
 
-        self._value = value.upper()
+        self._value: str = value.upper()
 
     def get_value(self) -> Tuple[int, int]:
         """

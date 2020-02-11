@@ -22,4 +22,4 @@ class NumberValue(CellValue):
         if not (isinstance(value, str) and value.isdigit() and int(value) >= 0):
             raise ValueError(f'Значение "{value}" не является целым положительным числом!')
 
-        self._value = int(value)
+        self._value: int = int(value)

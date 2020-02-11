@@ -38,16 +38,19 @@ class ExpressionValue(CellValue):
             self._value = []
             return
 
-        # Разбить выражение на массив состоящий из операндов и операторов
-        value_list_ = value[1:].upper()
+        #
+        # 1. Разбить строку с выражением на массив состоящий из операндов и операторов
+        #
+        expression = value[1:].upper()
         for o in _Operator.All:
-            value_list_ = value_list_.replace(o, f' {o} ')
+            expression = expression.replace(o, f' {o} ')
+        exp_str_list = expression.split()
 
-        expression = value_list_.split()
-
-        # Сформировать список операндов и операций
+        #
+        # 2. Сформировать список операндов и операций выражений по массиву строкового представления
+        #
         exp_item_list = []
-        for v in expression:
+        for v in exp_str_list:
 
             # Если элементом (выражения) является оператором, то последний элемент выражения должен быть операнд
             if v in _Operator.All:
@@ -66,6 +69,10 @@ class ExpressionValue(CellValue):
                     exp_item_list.append(operand)
                 else:
                     raise ValueError(error_text)
+
+        #
+        # 3. Валидация
+        #
 
         # Кол-во элементов выражения должно быть не четным. Например 1+2+3
         if len(exp_item_list) % 2 != 1:
@@ -150,7 +157,7 @@ class _Operator:
 
 class _CalcExpError(RuntimeError):
     """
-    Ошибка вычисления выражения.
+    Ошибка вычисления выражения
     """
 
     @classmethod
@@ -180,8 +187,8 @@ def _calc_exp_wo_ref(exp: List[str]) -> Union[int, str, None]:
     Вычислить выражение без наличия ссылок (на ячейки).
     Вычисление происходит без рекурсии!
 
-    * Все вычисления выполняются с помощью целочисленной арифметики со знаком.
-    * Операции над строками текста запрещены.
+    * Все вычисления выполняются с помощью целочисленной арифметики со знаком
+    * Операции над строками текста запрещены
 
     :param exp: Выражение
     :raise: _CalcExpError
@@ -210,13 +217,19 @@ def _calc_exp_with_ref(cell_key: Tuple[int, int], exp: List, sheet_cell_value: d
     Вычислить выражение.
     Вычисление происходит без рекурсии!
 
-    :param cell_key: Координаты ячейки (x, y).
-    :param exp: Элементы задающие выражения (см. ExpressionValue.get_value).
-    :param sheet_cell_value: Текущие вычисленные значения листа.
+    :param cell_key: Координаты ячейки (x, y)
+    :param exp: Элементы задающие выражения (см. ExpressionValue.get_value)
+    :param sheet_cell_value: Текущие вычисленные значения листа
     """
 
-    # Выражение ячейки (Ключ ячейки, исходное выражение, результирующее выражение).
     CellExp = namedtuple('CellExp', 'cell_key source_exp result_exp')
+    CellExp.__doc__ = """
+    Выражение ячейки
+    
+    :param tuple cell_key: Координаты ячейки (x, y)
+    :param list source_exp: Исходное выражение
+    :param list result_exp: Результирующее выражение
+    """
 
     def process_cell_exp(cell_exp: CellExp) -> Union[CellExp, None]:
         """
@@ -273,7 +286,7 @@ def _calc_exp_with_ref(cell_key: Tuple[int, int], exp: List, sheet_cell_value: d
 
                 process_exp_stack.append(next_process_exp)
 
-            # Производим расчет.
+            # Производим расчет
             else:
                 sheet_cell_value[process_exp.cell_key] = _calc_exp_wo_ref(process_exp.result_exp)
                 process_exp_stack.pop()

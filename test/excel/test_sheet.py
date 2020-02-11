@@ -2,8 +2,7 @@ import pytest
 
 from excel.cell.cell import CellValue
 from excel.cell.expression_value import _CalcExpError as CalcExpError
-
-from excel.sheet import *
+from excel.sheet import Sheet, SheetSize
 
 
 class TestSheetConstructor:

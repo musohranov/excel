@@ -3,6 +3,8 @@
 Предоставляется функциональность добавления расчетных строк с ячейками, с последующей механикой расчета.
 """
 
+from typing import Dict, Tuple, Union
+
 from excel.cell.cell import CellValue
 from excel.cell.expression_value import ExpressionValue
 
@@ -19,7 +21,7 @@ class Sheet:
         """
 
         self._size: SheetSize = SheetSize.parser(size_line)
-        self._cell_list: dict = {}
+        self._cell_list: Dict[Tuple[int, int], Union[CellValue, str, int]] = {}
 
     def get_size(self) -> 'SheetSize':
         """
@@ -54,7 +56,7 @@ class Sheet:
         for i, value in enumerate(cell_value_list):
             self._cell_list[(i + 1, line_number)] = CellValue.parser(value)
 
-    def calculate(self) -> dict:
+    def calculate(self) -> Dict[Tuple[int, int], Union[str, int]]:
         """
         Рассчитать значения
         :return Ключом является кортеж (x, y), значением вычисленное выражение
